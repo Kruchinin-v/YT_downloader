@@ -1,6 +1,7 @@
 from pytube import YouTube
 from environments.envdef.get_config import get_config
 
+
 class Download:
     def __init__(self, url: str, path: str, progressive: bool, adaptive: bool, extension: str):
         self.url = url
@@ -30,8 +31,7 @@ class Download:
         response = ''
         while result != 'OK':
             try:
-                response = input(
-                    "Выбирите качество: ").lower()
+                response = input("Выберите качество: ").lower()
             except KeyboardInterrupt:
                 result = 'OK'
                 print("")
@@ -50,7 +50,7 @@ class Download:
         self.resolution = resolutions[response]
         return f"{self.resolution}p"
 
-    def download():
+    def download(self):
 
 
         yt = YouTube(url)
