@@ -1,0 +1,5 @@
+PROGRESSIVE: false
+ADAPTIVE: false
+FILE_EXTENSION: "mp4"
+PATH_TO_DOWNLOAD: "/opt/youtube_downloader/download"
+URL_YOUTUBE: "https://youtube.com/watch?v=2lAe1cqCOXo"
