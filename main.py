@@ -1,3 +1,5 @@
+import os
+import time
 from pytube import YouTube
 from environments.envdef.get_config import get_config
 
@@ -10,8 +12,18 @@ class Download:
         self.adaptive = adaptive
         self.extension = extension
 
+        self.temp_dir = os.path.join(self.path, 'tmp')
         self.streams = None
         self.resolution = None
+        self.title_video = None
+        self.title_audio = None
+        self.yt = None
+        self.title = None
+        self.path_input_video = None
+        self.path_input_audio = None
+        self.path_out = None
+        self.begin_time = None
+        self.end_time = None
 
     def ask_resolution(self):
         resolutions = set()
@@ -50,61 +62,123 @@ class Download:
         self.resolution = resolutions[response]
         return f"{self.resolution}p"
 
+    def create_temp_dir(self):
+
+        try:
+            os.mkdir(self.temp_dir)
+        except FileExistsError:
+            pass
+        except:
+            raise
+
+    def delete_tmp_files(self):
+        os.remove(self.path_input_video)
+        os.remove(self.path_input_audio)
+
+    def concat(self):
+        import subprocess
+
+        path_out = os.path.join(self.path, f"{self.title}.mp4")
+        self.path_out = path_out
+        # path_out = os.path.join(self.temp_dir, f"out.mp4")
+
+        try:
+            command = f"ffmpeg -y -i {self.path_input_video} -i {self.path_input_audio} -c:v copy \"{path_out}\""
+            print(command)
+            answer = subprocess.run(command, shell=True,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, encoding='UTF-8')
+
+            # print(answer.stdout)
+            # print(answer.returncode)
+            if answer.returncode != 0:
+                print(answer.stderr)
+
+            # print(input_audio)
+            # print(input_video)
+
+        except:
+            raise
+
+    def download_parts(self):
+        import time
+        time = int(time.time() * 1000)
+
+        self.create_temp_dir()
+
+        # time = "1622807133952"
+
+        self.title_video = f"yt_{time}_video"
+        self.title_audio = f"yt_{time}_audio"
+
+        self.streams.first().download(output_path=self.temp_dir, filename=self.title_video)
+        stream = self.yt.streams.filter(file_extension="mp4", only_audio=True)
+
+        stream.first().download(output_path=self.temp_dir, filename=self.title_audio)
+
+        path_input_video = os.path.join(self.temp_dir, self.title_video) + ".mp4"
+        path_input_audio = os.path.join(self.temp_dir, self.title_audio) + ".mp4"
+
+        self.path_input_video = path_input_video
+        self.path_input_audio = path_input_audio
+
+    def the_end(self):
+        self.end_time = time.monotonic()
+        result_time = int((self.end_time - self.begin_time) * 1000) / 1000
+        print(f"Время работы: {result_time} sec")
+
     def download(self):
+        import re
 
-
-        yt = YouTube(url)
-        title = yt.title
+        yt = YouTube(self.url)
+        self.yt = yt
+        self.title = yt.title
         resolution = ""
 
-        print(f"Название видео: {title}")
+        print(f"Название видео: {self.title}")
 
-        streams = yt.streams.filter(file_extension=extension).order_by('resolution').desc()
-        streams = streams.filter(progressive=progressive, adaptive=adaptive)
+        self.title = re.sub('(\\|/|\*|:|#|\|)', '', self.title)
+        print(self.title)
+
+        streams = yt.streams.filter(file_extension=self.extension).order_by('resolution').desc()
+        streams = streams.filter(progressive=self.progressive, adaptive=self.adaptive)
 
         if resolution == "":
-            resolution = ask_resolution(streams)
+            self.streams = streams
+            resolution = self.ask_resolution()
 
         streams = streams.filter(resolution=resolution)
 
+        self.begin_time = time.monotonic()
+
+        print("Downloading...")
+
         if len(streams.filter(progressive=True)) > 0:
-            print("Downloading...")
-            streams.filter(progressive=True).first().download(output_path=path)
+            # streams.filter(progressive=True).first().download(output_path=self.path, skip_existing=False)
+            streams.filter(progressive=True).first().download(output_path=self.path)
+            self.the_end()
             return 0
 
         print("прогрессивного нет(")
-
-        for i in streams:
-            print(i)
-
-    # print(streams.first().resolution)
-
-    # yt.streams.filter(file_extension='mp4').order_by('resolution').desc().first().download(path)
-    # yt.streams.filter(only_audio=True).first().download(PATH_TO_DOWNLOAD)
-
-    # yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first().download()
-    # for i in yt.streams.filter(resolution="1080p", file_extension='mp4'):
-    # for i in yt.streams.filter(progressive=progressive, adaptive=adaptive).order_by('resolution').desc():
-
-    # for i in yt.streams.order_by('resolution').desc():
-    # for i in yt.streams:
-    # for i in yt.streams.filter(only_audio=True):
+        self.streams = streams
+        self.download_parts()
+        self.concat()
+        self.delete_tmp_files()
+        self.the_end()
 
 
-def concat():
-    import ffmpeg
-
-    input_video = ffmpeg.input(r'z:\home\vkruchinin\projects\youtube_downloader\download\YouTube_video.mp4')
-
-    input_audio = ffmpeg.input(r'z:\home\vkruchinin\projects\youtube_downloader\download\YouTube_audio.mp4')
-
-    ffmpeg.concat(input_video, input_audio, v=1, a=1).output(r'z:\home\vkruchinin\projects\youtube_downloader\download\YouTube_concat.mp4').run()
+        # for i in yt.streams.filter(only_audio=True, file_extension="mp4"):
+        #     print(i)
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
+def main():
+    result = get_config()
+    if result['status'] == 'Fail':
+        print(result['result'])
+        print(result['detail'])
+        exit(1)
 
-    config = get_config()['result']
+    config = result['result']
 
     url_youtube = config['URL_YOUTUBE']
     is_progressive = config['PROGRESSIVE']
@@ -117,4 +191,10 @@ if __name__ == '__main__':
     app = Download(url_youtube, path_to_download, is_progressive, is_adaptive, file_extension)
     app.download()
 
-    # concat()
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Abort\n")
+        exit()

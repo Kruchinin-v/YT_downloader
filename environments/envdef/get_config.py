@@ -19,7 +19,8 @@ def get_config():
             answer['result'] = yaml.load(stream, Loader=yaml.FullLoader)
             answer['result']['BASE_DIR'] = BASE_DIR
         except Exception as e:
-            answer['result'] = "Ошибка чтение конфигурации"
+            answer['status'] = 'Fail'
+            answer['result'] = "Ошибка чтения конфигурации"
             answer['detail'] = e
 
     return answer
