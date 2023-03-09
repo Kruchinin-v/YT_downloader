@@ -108,16 +108,16 @@ class Download:
 
         # time = "1622807133952"
 
-        self.title_video = f"yt_{time}_video"
-        self.title_audio = f"yt_{time}_audio"
+        self.title_video = f"yt_{time}_video.mp4"
+        self.title_audio = f"yt_{time}_audio.mp4"
 
         self.streams.first().download(output_path=self.temp_dir, filename=self.title_video)
         stream = self.yt.streams.filter(file_extension="mp4", only_audio=True)
 
         stream.first().download(output_path=self.temp_dir, filename=self.title_audio)
 
-        path_input_video = os.path.join(self.temp_dir, self.title_video) + ".mp4"
-        path_input_audio = os.path.join(self.temp_dir, self.title_audio) + ".mp4"
+        path_input_video = os.path.join(self.temp_dir, self.title_video)
+        path_input_audio = os.path.join(self.temp_dir, self.title_audio)
 
         self.path_input_video = path_input_video
         self.path_input_audio = path_input_audio
