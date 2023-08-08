@@ -1,3 +1,5 @@
 .idea
 *.mp4
 conf.yml
+__pycache__
+.DS_Store
