@@ -6,7 +6,7 @@ from environments.envdef.get_config import get_config
 
 class Download:
     def __init__(self, url: str, path: str, progressive: bool, adaptive: bool, extension: str):
-        self.url = url
+        self.url: str = url
         self.path = path
         self.progressive = progressive
         self.adaptive = adaptive
@@ -61,6 +61,15 @@ class Download:
             result = 'OK'
         self.resolution = resolutions[response]
         return f"{self.resolution}p"
+
+    def ask_url(self) -> str:
+        try:
+            response: str = input("Enter url: ").strip()
+        except KeyboardInterrupt:
+            result = 'OK'
+            print("")
+            exit()
+        return response
 
     def create_temp_dir(self):
 
@@ -129,6 +138,8 @@ class Download:
 
     def download(self):
         import re
+        if self.url == "":
+            self.url = self.ask_url()
 
         yt = YouTube(self.url)
         self.yt = yt
@@ -138,7 +149,7 @@ class Download:
         print(f"Название видео: {self.title}")
 
         self.title = re.sub('(\\|/|\*|:|#|\|)', '', self.title)
-        print(self.title)
+        # print(self.title)
 
         streams = yt.streams.filter(file_extension=self.extension).order_by('resolution').desc()
         streams = streams.filter(progressive=self.progressive, adaptive=self.adaptive)
