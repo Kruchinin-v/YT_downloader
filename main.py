@@ -2,6 +2,9 @@ import os
 import time
 from pytube import YouTube
 from environments.envdef.get_config import get_config
+# from google.auth import credentials, compute_engine, exceptions
+# from google.auth.transport.requests import Request
+# from google.oauth2 import service_account
 
 
 class Download:
@@ -140,8 +143,9 @@ class Download:
         import re
         if self.url == "":
             self.url = self.ask_url()
-
-        yt = YouTube(self.url)
+        # Авторизация может не сработать, надо поменять в коде библиотеки
+        # в файле innertube.py на 223 строчке ANDROID_MUSIC на ANDROID
+        yt = YouTube(self.url, use_oauth=True, allow_oauth_cache=True)
         self.yt = yt
         self.title = yt.title
         resolution = ""
