@@ -1,2 +1,2 @@
-pytube==15.0.0
+pytubefix
 PyYAML==6.0.1

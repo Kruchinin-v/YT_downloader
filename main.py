@@ -1,10 +1,7 @@
 import os
 import time
-from pytube import YouTube
+from pytubefix import YouTube
 from environments.envdef.get_config import get_config
-# from google.auth import credentials, compute_engine, exceptions
-# from google.auth.transport.requests import Request
-# from google.oauth2 import service_account
 
 
 class Download:
@@ -146,6 +143,7 @@ class Download:
         # Авторизация может не сработать, надо поменять в коде библиотеки
         # в файле innertube.py на 223 строчке ANDROID_MUSIC на ANDROID
         yt = YouTube(self.url, use_oauth=True, allow_oauth_cache=True)
+        # yt = YouTube(self.url)
         self.yt = yt
         self.title = yt.title
         resolution = ""
@@ -154,7 +152,7 @@ class Download:
 
         self.title = re.sub('(\\|/|\*|:|#|\|)', '', self.title)
         # print(self.title)
-
+        # https://github.com/pytube/pytube/commit/d6623d8ce39c777f22a5638307c9fceedc01b047
         streams = yt.streams.filter(file_extension=self.extension).order_by('resolution').desc()
         streams = streams.filter(progressive=self.progressive, adaptive=self.adaptive)
 
