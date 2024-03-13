@@ -1,2 +1,2 @@
-pytubefix
+pytubefix==2.1.1
 PyYAML==6.0.1
